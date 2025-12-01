@@ -5,6 +5,7 @@ import numpy as np
 from Model_Functions import Filtered_Data, Discretize, Probability_Matrix, Probability_Nsteps, Random_Walk, Plot_Random_Walk, Montecarlo_Simulation
 import matplotlib.pyplot as plt
 import seaborn as sns
+import pydtmc as dtmc
 
 # Page configuration
 st.set_page_config(
@@ -96,6 +97,7 @@ if not discretized_data.empty:
     
     ax.set_yticks(range(len(labels)))
     ax.set_yticklabels(labels)
+    ax.invert_yaxis()
     ax.set_title('Engagement State Over Time')
     ax.set_xlabel('Date')
     ax.set_ylabel('Engagement State')
@@ -108,6 +110,23 @@ sparse_matrix, prob_matrix = Probability_Matrix(discretized_data, labels)
 
 st.write("Transition Matrix:")
 st.dataframe(pd.DataFrame(prob_matrix, index=labels, columns=labels))
+
+# Markov Chain Properties
+st.header("Markov Chain Properties")
+
+try:
+    mc = dtmc.MarkovChain(prob_matrix, states=labels.tolist())
+    
+    is_ergodic = mc.is_ergodic
+    st.write(f"**Is Ergodic?** {is_ergodic}")
+    
+    if is_ergodic:
+        steady_states = mc.steady_states[0]
+        st.write("**Stationary Distribution:**")
+        st.dataframe(pd.DataFrame(steady_states, index=labels, columns=["Probability"]))
+
+except Exception as e:
+    st.error(f"Could not perform Markov Chain analysis. Please ensure the 'pydtmc' library is installed and the transition matrix is valid. Error: {e}")
 
 # N-step transition
 st.header("N-Step Transition Probability")
