@@ -60,6 +60,13 @@ else:
 st.header("Filtered Data")
 st.dataframe(filtered_data)
 
+# Engagement Over Time (Continuous)
+st.header("Engagement Over Time (Continuous)")
+if not filtered_data.empty:
+    st.line_chart(filtered_data['Engagement'])
+else:
+    st.write("No data to display.")
+
 # Markov Chain Analysis
 st.header("Markov Chain Analysis")
 
@@ -73,6 +80,28 @@ quantiles = np.array([0, q1, q2, q3, q4])
 discretized_data, labels = Discretize(filtered_data, quantiles)
 st.write("Discretized Data (States):")
 st.dataframe(discretized_data)
+
+# Engagement State Over Time
+st.header("Engagement State Over Time")
+if not discretized_data.empty:
+    # Map state labels to integers for plotting
+    state_to_int = {label: i for i, label in enumerate(labels)}
+    
+    # Create a new column with integer states
+    plot_data = discretized_data.copy()
+    plot_data['State_Int'] = plot_data['State'].map(state_to_int)
+
+    fig, ax = plt.subplots(figsize=(10, 5))
+    sns.lineplot(data=plot_data, x=plot_data.index, y='State_Int', ax=ax)
+    
+    ax.set_yticks(range(len(labels)))
+    ax.set_yticklabels(labels)
+    ax.set_title('Engagement State Over Time')
+    ax.set_xlabel('Date')
+    ax.set_ylabel('Engagement State')
+    st.pyplot(fig)
+else:
+    st.write("No data to display.")
 
 # Probability Matrix
 sparse_matrix, prob_matrix = Probability_Matrix(discretized_data, labels)
